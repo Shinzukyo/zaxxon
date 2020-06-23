@@ -1,34 +1,41 @@
 #include "pch.h"
 #include "Game.h"
-
 #include "EntityManager.h"
 
 
-const float Game::PlayerSpeed = 100.f;
+const float Game::PlayerSpeed = 150.f;
 const sf::Time Game::TimePerFrame = sf::seconds(1.f / 60.f);
+const float Game::PlayerMissileSpeed = 500;
+const float Game::BackgroundSpeed = 0.1;
 
 Game::Game()
-	: mWindow(sf::VideoMode(840, 600), "Zaxxon", sf::Style::Close)
+	: mWindow(sf::VideoMode(1200, 720), "Zaxxon", sf::Style::Close)
 	, mTexture()
 	, mPlayer()
+	, mIsMovingUp(false)
+	, mIsMovingDown(false)
+	, mIsMovingRight(false)
+	, mIsMovingLeft(false)
 {
 	//mWindow.setFramerateLimit(160);
 
 	mTexture.loadFromFile("Media/Texture/spaceship.png");
+	mTBackground.loadFromFile("Media/Texture/sky.jpg");
 	InitSprites();
 }
 
 void Game::ResetSprites()
 {
-	/*_IsGameOver = false;
-	_IsEnemyWeaponFired = false;
+    //_IsGameOver = false;
+	//_IsEnemyWeaponFired = false;
 	_IsPlayerWeaponFired = false;
-	_IsEnemyMasterWeaponFired = false;
+	//_IsEnemyMasterWeaponFired = false;
+	mBackground.setPosition(mBackground.getOrigin());
 
 	for (std::shared_ptr<Entity> entity : EntityManager::m_Entities)
 	{
 		entity->m_enabled = true;
-	}*/
+	}
 }
 
 
@@ -39,16 +46,17 @@ void Game::InitSprites()
 
 	// Player
 	mPlayer.setTexture(mTexture);
-	mPlayer.setPosition(100.f, 500.f);
+	mPlayer.setPosition(10.f, 250.f);
 
-	mPlayer.scale(0.2,0.2);
-	mPlayer.rotate(-45.0);
+	mPlayer.scale(0.1,0.1);
 
 	std::shared_ptr<Entity> player = std::make_shared<Entity>();
 	player->m_sprite = mPlayer;
 	player->m_type = EntityType::player;
 	player->m_size = mTexture.getSize();
 	player->m_position = mPlayer.getPosition();
+	mBackground.setTexture(mTBackground);
+	mBackground.scale(0.5, 0.5);
 	EntityManager::m_Entities.push_back(player);
 }
 
@@ -98,36 +106,44 @@ void Game::processEvents()
 
 void Game::update(sf::Time elapsedTime)
 {
-	sf::Vector2f movement(0.f, 0.f);
-	if (mIsMovingUp)
-		movement.y -= PlayerSpeed;
-	if (mIsMovingDown)
-		movement.y += PlayerSpeed;
-	if (mIsMovingLeft)
-		movement.x -= PlayerSpeed;
-	if (mIsMovingRight)
-		movement.x += PlayerSpeed;
-
+	float bgMove = mBackground.getPosition().x <= -float(mTBackground.getSize().x - 10) ? 0 : BackgroundSpeed;
 	for (std::shared_ptr<Entity> entity : EntityManager::m_Entities)
 	{
+		sf::Vector2f movement(0.f, 0.f);
 		if (entity->m_enabled == false)
 		{
 			continue;
 		}
-
-		if (entity->m_type != EntityType::player)
+		if (entity->m_type == EntityType::player)
 		{
-			continue;
+			if (mIsMovingUp && entity->m_sprite.getPosition().y > 0)
+				movement.y -= PlayerSpeed;
+			if (mIsMovingDown && entity->m_sprite.getPosition().y < mWindow.getSize().y - (mTexture.getSize().y * entity->m_sprite.getScale().y))
+				movement.y += PlayerSpeed;
+			if (mIsMovingRight && entity->m_sprite.getPosition().x < mWindow.getSize().x)
+				movement.x += PlayerSpeed;
+			if (mIsMovingLeft && entity->m_sprite.getPosition().x > 0 + (mTexture.getSize().x * entity->m_sprite.getScale().x))
+				movement.x -= PlayerSpeed;
+		}
+		else if (entity->m_type == EntityType::weapon)
+		{
+			movement.x = PlayerMissileSpeed;
+			if (entity->m_sprite.getPosition().x > mWindow.getSize().x) {
+				entity->m_enabled = false;
+			}
+			_IsPlayerWeaponFired = false;
 		}
 
 		entity->m_sprite.move(movement * elapsedTime.asSeconds());
 	}
+
+	mBackground.move(-bgMove, 0);
 }
 
 void Game::render()
 {
 	mWindow.clear();
-
+	mWindow.draw(mBackground);
 	for (std::shared_ptr<Entity> entity : EntityManager::m_Entities)
 	{
 		if (entity->m_enabled == false)
@@ -167,19 +183,16 @@ void Game::handlePlayerInput(sf::Keyboard::Key key, bool isPressed)
 		}
 
 		std::shared_ptr<Entity> sw = std::make_shared<Entity>();
-		sw->m_sprite.setTexture(_TextureWeapon);
-		float x = EntityManager::GetPlayer()->m_sprite.getPosition().x + EntityManager::GetPlayer()->m_sprite.getTexture()->getSize().x / 2;
-		x = x < 0 ? 0 : x;
-
-		float y = EntityManager::GetPlayer()->m_sprite.getPosition().y - 10;
-		y = y < 0 ? 0 : y;
+		mTMissile.loadFromFile("Media/Texture/laser.png");
+		sw->m_sprite.setTexture(mTMissile);
+		sw->m_sprite.setScale(0.5, 0.5);
+		
+		sw->m_size = mTMissile.getSize();
 		sw->m_sprite.setPosition(
-			EntityManager::GetPlayer()->m_sprite.getPosition().x + EntityManager::GetPlayer()->m_sprite.getTexture()->getSize().x / 2,
-			EntityManager::GetPlayer()->m_sprite.getPosition().y - 10);
+			EntityManager::GetPlayer()->m_sprite.getPosition().x + (EntityManager::GetPlayer()->m_sprite.getTexture()->getSize().x * EntityManager::GetPlayer()->m_sprite.getScale().x) / 2,
+			EntityManager::GetPlayer()->m_sprite.getPosition().y + (EntityManager::GetPlayer()->m_sprite.getTexture()->getSize().y * EntityManager::GetPlayer()->m_sprite.getScale().y) / 2);
 		sw->m_type = EntityType::weapon;
-		sw->m_size = _TextureWeapon.getSize();
 		EntityManager::m_Entities.push_back(sw);
-
 		_IsPlayerWeaponFired = true;
 	}
 }
