@@ -24,6 +24,7 @@ private:
 	static const float		PlayerMissileSpeed;
 	static const float		BackgroundSpeed;
 	static const sf::Time	TimePerFrame;
+	static const float		EnemySpeed;
 
 	sf::RenderWindow		mWindow;
 	sf::Texture	mTexture;
@@ -32,6 +33,9 @@ private:
 	sf::Sprite mMissile;
 	sf::Texture mTBackground;
 	sf::Sprite mBackground;
+
+	sf::Texture			mTEnemy;
+	sf::Sprite			mEnemy[8];
 
 	bool mIsMovingUp;
 	bool mIsMovingDown;
@@ -44,3 +48,4 @@ private:
 	sf::Texture	_TextureWeapon;
 };
 
+ 

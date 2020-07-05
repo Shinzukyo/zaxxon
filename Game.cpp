@@ -7,6 +7,8 @@ const float Game::PlayerSpeed = 150.f;
 const sf::Time Game::TimePerFrame = sf::seconds(1.f / 60.f);
 const float Game::PlayerMissileSpeed = 500;
 const float Game::BackgroundSpeed = 0.1;
+const float Game::EnemySpeed = 100.0f;
+
 
 Game::Game()
 	: mWindow(sf::VideoMode(1200, 720), "Zaxxon", sf::Style::Close)
@@ -19,8 +21,9 @@ Game::Game()
 {
 	//mWindow.setFramerateLimit(160);
 
-	mTexture.loadFromFile("Media/Texture/spaceship.png");
+	mTexture.loadFromFile("Media/Texture/spaceship.jpg");
 	mTBackground.loadFromFile("Media/Texture/sky.jpg");
+	mTEnemy.loadFromFile("Media/Texture/espaceship.png");
 	InitSprites();
 }
 
@@ -58,6 +61,29 @@ void Game::InitSprites()
 	mBackground.setTexture(mTBackground);
 	mBackground.scale(0.5, 0.5);
 	EntityManager::m_Entities.push_back(player);
+
+
+	// Enemies
+	float ecart = mWindow.getSize().x;
+	std::srand(time(0));
+	for (int j = 0; j < 6; j++) {
+
+		for (int i = 0; i < 7; i++)
+		{
+			mEnemy[i].setTexture(mTEnemy);
+			mEnemy[i].setScale(0.1, 0.1);
+			mEnemy[i].setPosition(
+				mWindow.getSize().x + (ecart * i) + std::rand() % 50,
+				std::rand() % int(mWindow.getSize().y - mEnemy[i].getTexture()->getSize().y * mEnemy[i].getScale().y)
+				);
+			std::shared_ptr<Entity> se = std::make_shared<Entity>();
+			se->m_sprite = mEnemy[i];
+			se->m_type = EntityType::enemy;
+			se->m_size = mTEnemy.getSize();
+			se->m_position = mEnemy[i].getPosition();
+			EntityManager::m_Entities.push_back(se);
+		}
+	}
 }
 
 void Game::run()
@@ -132,6 +158,14 @@ void Game::update(sf::Time elapsedTime)
 				entity->m_enabled = false;
 			}
 			_IsPlayerWeaponFired = false;
+		}
+		else if (entity->m_type == EntityType::enemy)
+		{
+			printf("x : %f\n", entity->m_position.x);
+			printf("y : %f\n", entity->m_position.y);
+
+			movement.x = -((double)std::rand() / (RAND_MAX)+2) * EnemySpeed;
+			
 		}
 
 		entity->m_sprite.move(movement * elapsedTime.asSeconds());
