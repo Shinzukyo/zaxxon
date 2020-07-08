@@ -17,6 +17,7 @@ private:
 	void ResetSprites();
 
 	void handlePlayerInput(sf::Keyboard::Key key, bool isPressed);
+	void handleCollisions();
 
 
 private:

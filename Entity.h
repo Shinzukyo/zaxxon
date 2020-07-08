@@ -24,8 +24,8 @@ public:
 	EntityType m_type;
 	bool m_enabled = true;
 
-	// Enemy only
-	bool m_bLeftToRight = true;
-	int m_times = 0;
+	int life;
+	int damage;
+
 };
 
