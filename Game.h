@@ -10,7 +10,7 @@ public:
 
 private:
 	void processEvents();
-	void update(sf::Time elapsedTime);
+	void update();
 	void render();
 
 	void InitSprites();
@@ -23,8 +23,9 @@ private:
 	static const float		PlayerSpeed;
 	static const float		PlayerMissileSpeed;
 	static const float		BackgroundSpeed;
-	static const sf::Time	TimePerFrame;
 	static const float		EnemySpeed;
+	static const float		EnemyMissilesSpeed;
+	static int		EnemyMissilesNumber;
 
 	sf::RenderWindow		mWindow;
 	sf::Texture	mTexture;
@@ -36,6 +37,9 @@ private:
 
 	sf::Texture			mTEnemy;
 	sf::Sprite			mEnemy[8];
+
+	sf::Texture			mTEnemyMissile;
+	sf::Sprite			mEnemyMissile;
 
 	bool mIsMovingUp;
 	bool mIsMovingDown;

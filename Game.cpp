@@ -3,15 +3,17 @@
 #include "EntityManager.h"
 
 
-const float Game::PlayerSpeed = 150.f;
-const sf::Time Game::TimePerFrame = sf::seconds(1.f / 60.f);
-const float Game::PlayerMissileSpeed = 500;
+const float Game::PlayerSpeed = 5.f;
+const float Game::PlayerMissileSpeed = 20;
 const float Game::BackgroundSpeed = 0.1;
-const float Game::EnemySpeed = 100.0f;
+const float Game::EnemySpeed = 0.5f;
+const float Game::EnemyMissilesSpeed = 10.0f;
+int Game::EnemyMissilesNumber = 0;
+
 
 
 Game::Game()
-	: mWindow(sf::VideoMode(1200, 720), "Zaxxon", sf::Style::Close)
+	: mWindow(sf::VideoMode(1280, 720), "Zaxxon", sf::Style::Close)
 	, mTexture()
 	, mPlayer()
 	, mIsMovingUp(false)
@@ -19,11 +21,12 @@ Game::Game()
 	, mIsMovingRight(false)
 	, mIsMovingLeft(false)
 {
-	//mWindow.setFramerateLimit(160);
+	mWindow.setFramerateLimit(160);
 
 	mTexture.loadFromFile("Media/Texture/spaceship.jpg");
 	mTBackground.loadFromFile("Media/Texture/sky.jpg");
 	mTEnemy.loadFromFile("Media/Texture/espaceship.png");
+
 	InitSprites();
 }
 
@@ -66,14 +69,13 @@ void Game::InitSprites()
 	// Enemies
 	float ecart = mWindow.getSize().x;
 	std::srand(time(0));
-	for (int j = 0; j < 6; j++) {
+	for (int j = 0; j < 8; j++) {
 
-		for (int i = 0; i < 7; i++)
+		for (int i = 0; i < 6; i++)
 		{
 			mEnemy[i].setTexture(mTEnemy);
-			mEnemy[i].setScale(0.1, 0.1);
 			mEnemy[i].setPosition(
-				mWindow.getSize().x + (ecart * i) + std::rand() % 50,
+				mWindow.getSize().x + (ecart * i) + std::rand() % 300,
 				std::rand() % int(mWindow.getSize().y - mEnemy[i].getTexture()->getSize().y * mEnemy[i].getScale().y)
 				);
 			std::shared_ptr<Entity> se = std::make_shared<Entity>();
@@ -84,25 +86,20 @@ void Game::InitSprites()
 			EntityManager::m_Entities.push_back(se);
 		}
 	}
+
+	// Enemy Missile
+	mEnemyMissile.setTexture(mTEnemyMissile);
+
 }
 
 void Game::run()
 {
-	sf::Clock clock;
-	sf::Time timeSinceLastUpdate = sf::Time::Zero;
-
 
 	while (mWindow.isOpen())
 	{
-		sf::Time elapsedTime = clock.restart();
-		timeSinceLastUpdate += elapsedTime;
-		while (timeSinceLastUpdate > TimePerFrame)
-		{
-			timeSinceLastUpdate -= TimePerFrame;
-			processEvents();
-			update(TimePerFrame);
-		}
-		// updateStatistics(elapsedTime);
+		processEvents();
+		update();
+
 		render();
 	}
 }
@@ -130,7 +127,7 @@ void Game::processEvents()
 	}
 }
 
-void Game::update(sf::Time elapsedTime)
+void Game::update()
 {
 	float bgMove = mBackground.getPosition().x <= -float(mTBackground.getSize().x - 10) ? 0 : BackgroundSpeed;
 	for (std::shared_ptr<Entity> entity : EntityManager::m_Entities)
@@ -161,14 +158,27 @@ void Game::update(sf::Time elapsedTime)
 		}
 		else if (entity->m_type == EntityType::enemy)
 		{
-			printf("x : %f\n", entity->m_position.x);
-			printf("y : %f\n", entity->m_position.y);
-
 			movement.x = -((double)std::rand() / (RAND_MAX)+2) * EnemySpeed;
-			
+			if (Game::EnemyMissilesNumber <= 2 && entity->m_sprite.getPosition().x < 1000) {
+				std::shared_ptr<Entity> ew = std::make_shared<Entity>();
+				mTEnemyMissile.loadFromFile("Media/Texture/elaser.png");
+				ew->m_sprite.setTexture(mTEnemyMissile);
+				ew->m_sprite.setScale(0.5, 0.5);
+
+				ew->m_size = mTEnemyMissile.getSize();
+				ew->m_sprite.setPosition(
+					entity->m_sprite.getPosition().x + (entity->m_sprite.getTexture()->getSize().x * entity->m_sprite.getScale().x) / 2,
+					entity->m_sprite.getPosition().y + (entity->m_sprite.getTexture()->getSize().y * entity->m_sprite.getScale().y) / 2);
+				ew->m_type = EntityType::enemyWeapon;
+				EntityManager::m_Entities.push_back(ew);
+				Game::EnemyMissilesNumber++;
+			}
+		}
+		else if (entity->m_type == EntityType::enemyWeapon) {
+			movement.x = -EnemyMissilesSpeed;
 		}
 
-		entity->m_sprite.move(movement * elapsedTime.asSeconds());
+		entity->m_sprite.move(movement);
 	}
 
 	mBackground.move(-bgMove, 0);
