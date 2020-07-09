@@ -112,9 +112,9 @@ void Game::InitSprites()
 	bw->m_sprite.setPosition(mWindow.getSize().x + (screenSize * 2) , mWindow.getSize().y / 2 - (bw->m_sprite.getTexture()->getSize().y * bw->m_sprite.getScale().y /2 ) ) ;
 	bw->m_type = EntityType::enemyMaster;
 	bw->damage = 20;
-	bw->life = 500;
+	bw->life = 800;
 	EntityManager::m_Entities.push_back(bw);
-
+	
 
 	// Enemy Missile
 	mEnemyMissile.setTexture(mTEnemyMissile);
@@ -200,7 +200,6 @@ void Game::update()
 				movement.x = -EnemySpeed;
 			}
 			
-			printf("%f\n", entity->m_sprite.getPosition().x);
 
 			if (entity->m_sprite.getPosition().x <= 0) {
 				entity->m_enabled = false;
@@ -226,7 +225,10 @@ void Game::update()
 
 		entity->m_sprite.move(movement);
 	}
-	mBackground.move(-bgMove, 0);
+
+	if (mBackground.getPosition().x > -550.0) {
+		mBackground.move(-bgMove, 0);
+	}
 }
 
 void Game::render()
