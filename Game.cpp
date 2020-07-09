@@ -15,6 +15,7 @@ Game::Game()
 	: mWindow(sf::VideoMode(1280, 720), "Zaxxon", sf::Style::Close)
 	, mTexture()
 	, mPlayer()
+	, mGameOver(false)
 	, mIsMovingUp(false)
 	, mIsMovingDown(false)
 	, mIsMovingRight(false)
@@ -26,6 +27,7 @@ Game::Game()
 	mTBackground.loadFromFile("Media/Texture/sky.jpg");
 	mTEnemy.loadFromFile("Media/Texture/espaceship.png");
 	mTBoss.loadFromFile("Media/Texture/eboss.jpg");
+	mTGameOverMessage.loadFromFile("Media/Texture/gameOver.png");
 
 	InitSprites();
 }
@@ -47,6 +49,11 @@ void Game::InitSprites()
 {
 
 	_IsPlayerWeaponFired = false;
+
+	mGameOverMessage.setTexture(mTGameOverMessage);
+	mGameOverMessage.setScale(2.0,2.0);
+	mGameOverMessage.setPosition(mWindow.getSize().x /2 - (mTGameOverMessage.getSize().x * mGameOverMessage.getScale().x ) /2 ,
+		mWindow.getSize().y / 2 - (mTGameOverMessage.getSize().y * mGameOverMessage.getScale().y) / 2);
 
 	// Player
 	mPlayer.setTexture(mTexture);
@@ -127,8 +134,11 @@ void Game::run()
 	while (mWindow.isOpen())
 	{
 		processEvents();
-		update();
-		handleCollisions();
+		if (!mGameOver) {
+			update();
+			handleCollisions();
+		}
+		
 		render();
 	}
 }
@@ -245,8 +255,15 @@ void Game::render()
 		mWindow.draw(entity->m_sprite);
 	}
 
+	if (mGameOver) {
+		displayGameOver();
+	}
 
 	mWindow.display();
+}
+
+void Game::displayGameOver() {
+	mWindow.draw(mGameOverMessage);
 }
 
 
@@ -287,6 +304,12 @@ void Game::handlePlayerInput(sf::Keyboard::Key key, bool isPressed)
 		sw->life = 1;
 		EntityManager::m_Entities.push_back(sw);
 		_IsPlayerWeaponFired = true;
+	}
+
+	if (key == sf::Keyboard::Escape) {
+		if (mGameOver) {
+			mWindow.close();
+		}
 	}
 }
 
@@ -374,8 +397,8 @@ void Game::handleCollisions()
 			if (player->life <= 0) {
 				/*mSoundHit.setBuffer(explode);
 				mSoundHit.play();
-				mPlayerWin = false;
-				mIsGameOver = true;*/
+				mPlayerWin = false;*/
+				mGameOver = true;
 				player->m_enabled = false;
 			}
 		}

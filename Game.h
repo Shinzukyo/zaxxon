@@ -16,6 +16,8 @@ private:
 	void InitSprites();
 	void ResetSprites();
 
+	void displayGameOver();
+
 	void handlePlayerInput(sf::Keyboard::Key key, bool isPressed);
 	void handleCollisions();
 
@@ -28,6 +30,9 @@ private:
 	static const float		EnemyMissilesSpeed;
 	static int		EnemyMissilesNumber;
 
+	bool mGameOver;
+	bool mVictory;
+
 	sf::RenderWindow		mWindow;
 	sf::Texture	mTexture;
 	sf::Sprite	mPlayer;
@@ -38,6 +43,9 @@ private:
 
 	sf::Texture	mTBoss;
 	sf::Sprite	mBoss;
+
+	sf::Texture	mTGameOverMessage;
+	sf::Sprite	mGameOverMessage;
 
 	sf::Texture			mTEnemy;
 	sf::Sprite			mEnemy[8];
