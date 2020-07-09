@@ -19,6 +19,8 @@ private:
 	void displayGameOver();
 	void displayVictory();
 
+	void displayLifeText();
+
 	void handlePlayerInput(sf::Keyboard::Key key, bool isPressed);
 	void handleCollisions();
 
@@ -66,6 +68,9 @@ private:
 
 
 	sf::Texture	_TextureWeapon;
+
+	sf::Text 			lifeDisplay;
+	sf::Font			lifeFont;
 };
 
  

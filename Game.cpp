@@ -24,12 +24,13 @@ Game::Game()
 {
 	mWindow.setFramerateLimit(160);
 
-	mTexture.loadFromFile("Media/Texture/spaceship.jpg");
+	mTexture.loadFromFile("Media/Texture/spaceship.png");
 	mTBackground.loadFromFile("Media/Texture/sky.jpg");
 	mTEnemy.loadFromFile("Media/Texture/espaceship.png");
-	mTBoss.loadFromFile("Media/Texture/eboss.jpg");
+	mTBoss.loadFromFile("Media/Texture/eboss.png");
 	mTGameOverMessage.loadFromFile("Media/Texture/gameOver.png");
 	mTVictoryMessage.loadFromFile("Media/Texture/victory.png");
+	lifeFont.loadFromFile("Media/Font/godeater.ttf");
 
 	InitSprites();
 }
@@ -65,7 +66,7 @@ void Game::InitSprites()
 	mPlayer.setTexture(mTexture);
 	mPlayer.setPosition(10.f, 250.f);
 
-	mPlayer.scale(0.1,0.1);
+	mPlayer.scale(1.0,1.0);
 
 	std::shared_ptr<Entity> player = std::make_shared<Entity>();
 	player->m_sprite = mPlayer;
@@ -121,16 +122,24 @@ void Game::InitSprites()
 
 	std::shared_ptr<Entity> bw = std::make_shared<Entity>();
 	bw->m_sprite.setTexture(mTBoss);
-	bw->m_size = mTEnemyMissile.getSize();
+	bw->m_size = mTBoss.getSize();
+	bw->m_sprite.setScale(3.0, 3.0);
 	bw->m_sprite.setPosition(mWindow.getSize().x + (screenSize * 2) , mWindow.getSize().y / 2 - (bw->m_sprite.getTexture()->getSize().y * bw->m_sprite.getScale().y /2 ) ) ;
 	bw->m_type = EntityType::enemyMaster;
 	bw->damage = 20;
 	bw->life = 800;
+	
 	EntityManager::m_Entities.push_back(bw);
 	
 
 	// Enemy Missile
 	mEnemyMissile.setTexture(mTEnemyMissile);
+
+
+	// Life display
+	lifeDisplay.setFont(lifeFont);
+	lifeDisplay.setCharacterSize(100);
+	lifeDisplay.setPosition(0, mWindow.getSize().y - lifeDisplay.getCharacterSize());
 
 }
 
@@ -184,57 +193,57 @@ void Game::update()
 		}
 		if (entity->m_type == EntityType::player)
 		{
-			if (mIsMovingUp && entity->m_sprite.getPosition().y > 0)
-				movement.y -= PlayerSpeed;
-			if (mIsMovingDown && entity->m_sprite.getPosition().y < mWindow.getSize().y - (mTexture.getSize().y * entity->m_sprite.getScale().y))
-				movement.y += PlayerSpeed;
-			if (mIsMovingRight && entity->m_sprite.getPosition().x < mWindow.getSize().x)
-				movement.x += PlayerSpeed;
-			if (mIsMovingLeft && entity->m_sprite.getPosition().x > 0)
-				movement.x -= PlayerSpeed;
+if (mIsMovingUp && entity->m_sprite.getPosition().y > 0)
+movement.y -= PlayerSpeed;
+if (mIsMovingDown && entity->m_sprite.getPosition().y < mWindow.getSize().y - (mTexture.getSize().y * entity->m_sprite.getScale().y))
+	movement.y += PlayerSpeed;
+if (mIsMovingRight && entity->m_sprite.getPosition().x < mWindow.getSize().x)
+	movement.x += PlayerSpeed;
+if (mIsMovingLeft && entity->m_sprite.getPosition().x > 0)
+movement.x -= PlayerSpeed;
 		}
 		else if (entity->m_type == EntityType::weapon)
 		{
-			movement.x = PlayerMissileSpeed;
-			if (entity->m_sprite.getPosition().x > mWindow.getSize().x) {
-				entity->m_enabled = false;
-			}
-			_IsPlayerWeaponFired = false;
+		movement.x = PlayerMissileSpeed;
+		if (entity->m_sprite.getPosition().x > mWindow.getSize().x) {
+			entity->m_enabled = false;
+		}
+		_IsPlayerWeaponFired = false;
 		}
 		else if (entity->m_type == EntityType::enemy)
 		{
-			movement.x = -((double)std::rand() / (RAND_MAX)+2) * EnemySpeed;
+		movement.x = -((double)std::rand() / (RAND_MAX)+2) * EnemySpeed;
 
 
-			if (entity->m_sprite.getPosition().x <= 0) {
-				entity->m_enabled = false;
-			}
+		if (entity->m_sprite.getPosition().x <= 0) {
+			entity->m_enabled = false;
+		}
 		}
 		else if (entity->m_type == EntityType::enemyMaster)
 		{
-			if (entity->m_sprite.getPosition().x > 1100) {
-				movement.x = -EnemySpeed;
-			}
-			
+		if (entity->m_sprite.getPosition().x > 900) {
+			movement.x = -EnemySpeed;
+		}
 
-			if (entity->m_sprite.getPosition().x <= 0) {
-				entity->m_enabled = false;
-			}
+
+		if (entity->m_sprite.getPosition().x <= 0) {
+			entity->m_enabled = false;
+		}
 		}
 		else if (entity->m_type == EntityType::enemyWeapon) {
-			movement.x = -EnemyMissilesSpeed;
-			std::srand(time(0));
-			if (entity->m_sprite.getPosition().x <= 1200 - std::rand() % 100) {
-				if (entity->m_sprite.getPosition().y < EntityManager::GetPlayer()->m_sprite.getPosition().y + (EntityManager::GetPlayer()->m_sprite.getTexture()->getSize().y * EntityManager::GetPlayer()->m_sprite.getScale().y) / 2) {
-					movement.y = EnemyMissilesSpeed;
-				}
-				else if (entity->m_sprite.getPosition().y > EntityManager::GetPlayer()->m_sprite.getPosition().y + (EntityManager::GetPlayer()->m_sprite.getTexture()->getSize().y * EntityManager::GetPlayer()->m_sprite.getScale().y) / 2) {
-					movement.y = -EnemyMissilesSpeed;
-				}
-				else {
-					movement.y = 0;
-				}
+		movement.x = -EnemyMissilesSpeed;
+		std::srand(time(0));
+		if (entity->m_sprite.getPosition().x <= 1200 - std::rand() % 100) {
+			if (entity->m_sprite.getPosition().y < EntityManager::GetPlayer()->m_sprite.getPosition().y + (EntityManager::GetPlayer()->m_sprite.getTexture()->getSize().y * EntityManager::GetPlayer()->m_sprite.getScale().y) / 2) {
+				movement.y = EnemyMissilesSpeed;
 			}
+			else if (entity->m_sprite.getPosition().y > EntityManager::GetPlayer()->m_sprite.getPosition().y + (EntityManager::GetPlayer()->m_sprite.getTexture()->getSize().y * EntityManager::GetPlayer()->m_sprite.getScale().y) / 2) {
+				movement.y = -EnemyMissilesSpeed;
+			}
+			else {
+				movement.y = 0;
+			}
+		}
 		}
 
 
@@ -269,6 +278,8 @@ void Game::render()
 		displayVictory();
 	}
 
+	displayLifeText();
+
 	mWindow.display();
 }
 
@@ -278,6 +289,29 @@ void Game::displayGameOver() {
 
 void Game::displayVictory() {
 	mWindow.draw(mVictoryMessage);
+}
+
+void Game::displayLifeText() {
+	if (mGameOver) {
+		lifeDisplay.setString("0 %");
+		mWindow.draw(lifeDisplay);
+	}
+	else {
+		int life = EntityManager::GetPlayer()->life;
+		std::string life_str = "";
+
+		if (life <= 0) {
+			life_str += "0";
+		}
+		else {
+			life_str += std::to_string(life * 2);
+		}
+
+		life_str += " %";
+		lifeDisplay.setString(life_str);
+		mWindow.draw(lifeDisplay);
+	}
+	
 }
 
 
@@ -361,7 +395,7 @@ void Game::handleCollisions()
 						enemy->life = enemy->life - player->damage;
 						if (enemy->life <= 0)
 						{
-							if (player->life < 70)
+							if (player->life < 50)
 								player->life += 10;
 							enemy->m_enabled = false;
 							if (enemy->m_type == EntityType::enemyMaster) {
