@@ -17,6 +17,7 @@ private:
 	void ResetSprites();
 
 	void displayGameOver();
+	void displayVictory();
 
 	void handlePlayerInput(sf::Keyboard::Key key, bool isPressed);
 	void handleCollisions();
@@ -46,6 +47,9 @@ private:
 
 	sf::Texture	mTGameOverMessage;
 	sf::Sprite	mGameOverMessage;
+
+	sf::Texture	mTVictoryMessage;
+	sf::Sprite	mVictoryMessage;
 
 	sf::Texture			mTEnemy;
 	sf::Sprite			mEnemy[8];

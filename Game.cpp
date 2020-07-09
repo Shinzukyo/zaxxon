@@ -16,6 +16,7 @@ Game::Game()
 	, mTexture()
 	, mPlayer()
 	, mGameOver(false)
+	, mVictory(false)
 	, mIsMovingUp(false)
 	, mIsMovingDown(false)
 	, mIsMovingRight(false)
@@ -28,13 +29,13 @@ Game::Game()
 	mTEnemy.loadFromFile("Media/Texture/espaceship.png");
 	mTBoss.loadFromFile("Media/Texture/eboss.jpg");
 	mTGameOverMessage.loadFromFile("Media/Texture/gameOver.png");
+	mTVictoryMessage.loadFromFile("Media/Texture/victory.png");
 
 	InitSprites();
 }
 
 void Game::ResetSprites()
 {
-    //_IsGameOver = false;
 	_IsPlayerWeaponFired = false;
 	mBackground.setPosition(mBackground.getOrigin());
 
@@ -54,6 +55,11 @@ void Game::InitSprites()
 	mGameOverMessage.setScale(2.0,2.0);
 	mGameOverMessage.setPosition(mWindow.getSize().x /2 - (mTGameOverMessage.getSize().x * mGameOverMessage.getScale().x ) /2 ,
 		mWindow.getSize().y / 2 - (mTGameOverMessage.getSize().y * mGameOverMessage.getScale().y) / 2);
+
+	mVictoryMessage.setTexture(mTVictoryMessage);
+	mVictoryMessage.setScale(2.0, 2.0);
+	mVictoryMessage.setPosition(mWindow.getSize().x / 2 - (mTVictoryMessage.getSize().x * mVictoryMessage.getScale().x) / 2,
+		mWindow.getSize().y / 2 - (mTVictoryMessage.getSize().y * mVictoryMessage.getScale().y) / 2);
 
 	// Player
 	mPlayer.setTexture(mTexture);
@@ -134,7 +140,7 @@ void Game::run()
 	while (mWindow.isOpen())
 	{
 		processEvents();
-		if (!mGameOver) {
+		if (!mGameOver && !mVictory) {
 			update();
 			handleCollisions();
 		}
@@ -259,11 +265,19 @@ void Game::render()
 		displayGameOver();
 	}
 
+	if (mVictory) {
+		displayVictory();
+	}
+
 	mWindow.display();
 }
 
 void Game::displayGameOver() {
 	mWindow.draw(mGameOverMessage);
+}
+
+void Game::displayVictory() {
+	mWindow.draw(mVictoryMessage);
 }
 
 
@@ -307,7 +321,7 @@ void Game::handlePlayerInput(sf::Keyboard::Key key, bool isPressed)
 	}
 
 	if (key == sf::Keyboard::Escape) {
-		if (mGameOver) {
+		if (mGameOver || mVictory) {
 			mWindow.close();
 		}
 	}
@@ -350,6 +364,9 @@ void Game::handleCollisions()
 							if (player->life < 70)
 								player->life += 10;
 							enemy->m_enabled = false;
+							if (enemy->m_type == EntityType::enemyMaster) {
+								mVictory = true;
+							}
 						}
 						entity->m_enabled = false;
 						break;
@@ -395,9 +412,6 @@ void Game::handleCollisions()
 				break;
 			}
 			if (player->life <= 0) {
-				/*mSoundHit.setBuffer(explode);
-				mSoundHit.play();
-				mPlayerWin = false;*/
 				mGameOver = true;
 				player->m_enabled = false;
 			}
