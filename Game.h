@@ -36,6 +36,9 @@ private:
 	sf::Texture mTBackground;
 	sf::Sprite mBackground;
 
+	sf::Texture	mTBoss;
+	sf::Sprite	mBoss;
+
 	sf::Texture			mTEnemy;
 	sf::Sprite			mEnemy[8];
 

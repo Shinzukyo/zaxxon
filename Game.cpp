@@ -8,7 +8,6 @@ const float Game::PlayerMissileSpeed = 20;
 const float Game::BackgroundSpeed = 0.1;
 const float Game::EnemySpeed = 0.5f;
 const float Game::EnemyMissilesSpeed = 2.0f;
-int Game::EnemyMissilesNumber = 0;
 
 
 
@@ -26,6 +25,7 @@ Game::Game()
 	mTexture.loadFromFile("Media/Texture/spaceship.jpg");
 	mTBackground.loadFromFile("Media/Texture/sky.jpg");
 	mTEnemy.loadFromFile("Media/Texture/espaceship.png");
+	mTBoss.loadFromFile("Media/Texture/eboss.jpg");
 
 	InitSprites();
 }
@@ -33,9 +33,7 @@ Game::Game()
 void Game::ResetSprites()
 {
     //_IsGameOver = false;
-	//_IsEnemyWeaponFired = false;
 	_IsPlayerWeaponFired = false;
-	//_IsEnemyMasterWeaponFired = false;
 	mBackground.setPosition(mBackground.getOrigin());
 
 	for (std::shared_ptr<Entity> entity : EntityManager::m_Entities)
@@ -69,7 +67,7 @@ void Game::InitSprites()
 
 
 	// Enemies
-	float ecart = mWindow.getSize().x;
+	float screenSize = mWindow.getSize().x;
 	std::srand(time(0));
 	for (int j = 0; j < 8; j++) {
 
@@ -77,7 +75,7 @@ void Game::InitSprites()
 		{
 			mEnemy[i].setTexture(mTEnemy);
 			mEnemy[i].setPosition(
-				mWindow.getSize().x + (ecart * i) + std::rand() % 300,
+				mWindow.getSize().x + (screenSize * i) + std::rand() % 300,
 				std::rand() % int(mWindow.getSize().y - mEnemy[i].getTexture()->getSize().y * mEnemy[i].getScale().y)
 				);
 			std::shared_ptr<Entity> se = std::make_shared<Entity>();
@@ -93,22 +91,30 @@ void Game::InitSprites()
 
 	for (int j = 0; j < 8; j++) {
 
-		for (int i = 0; i < 10; i++)
+		for (int i = 0; i < 15; i++)
 		{
 			std::shared_ptr<Entity> ew = std::make_shared<Entity>();
 			mTEnemyMissile.loadFromFile("Media/Texture/elaser.png");
 			ew->m_sprite.setTexture(mTEnemyMissile);
 			ew->m_size = mTEnemyMissile.getSize();
-			ew->m_sprite.setPosition(mWindow.getSize().x + (ecart * i) + std::rand() % 300, std::rand() % 2 == 0 ? 0 : 720);
+			ew->m_sprite.setPosition(mWindow.getSize().x + (screenSize * i) + std::rand() % 300, std::rand() % 2 == 0 ? -30 : 750);
 			ew->m_type = EntityType::enemyWeapon;
 			ew->damage = 10;
 			ew->life = 10;
 			EntityManager::m_Entities.push_back(ew);
-			Game::EnemyMissilesNumber++;
 		}
 	}
 
-		
+
+	std::shared_ptr<Entity> bw = std::make_shared<Entity>();
+	bw->m_sprite.setTexture(mTBoss);
+	bw->m_size = mTEnemyMissile.getSize();
+	bw->m_sprite.setPosition(mWindow.getSize().x + (screenSize * 2) , mWindow.getSize().y / 2 - (bw->m_sprite.getTexture()->getSize().y * bw->m_sprite.getScale().y /2 ) ) ;
+	bw->m_type = EntityType::enemyMaster;
+	bw->damage = 20;
+	bw->life = 500;
+	EntityManager::m_Entities.push_back(bw);
+
 
 	// Enemy Missile
 	mEnemyMissile.setTexture(mTEnemyMissile);
@@ -183,6 +189,18 @@ void Game::update()
 		{
 			movement.x = -((double)std::rand() / (RAND_MAX)+2) * EnemySpeed;
 
+
+			if (entity->m_sprite.getPosition().x <= 0) {
+				entity->m_enabled = false;
+			}
+		}
+		else if (entity->m_type == EntityType::enemyMaster)
+		{
+			if (entity->m_sprite.getPosition().x > 1100) {
+				movement.x = -EnemySpeed;
+			}
+			
+			printf("%f\n", entity->m_sprite.getPosition().x);
 
 			if (entity->m_sprite.getPosition().x <= 0) {
 				entity->m_enabled = false;
