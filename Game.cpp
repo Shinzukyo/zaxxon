@@ -8,6 +8,7 @@ const float Game::PlayerMissileSpeed = 20;
 const float Game::BackgroundSpeed = 0.1;
 const float Game::EnemySpeed = 0.5f;
 const float Game::EnemyMissilesSpeed = 2.0f;
+int Game::BossMeteorNumber = 0;
 
 
 
@@ -22,7 +23,7 @@ Game::Game()
 	, mIsMovingRight(false)
 	, mIsMovingLeft(false)
 {
-	mWindow.setFramerateLimit(160);
+	mWindow.setFramerateLimit(144);
 
 	mTexture.loadFromFile("Media/Texture/spaceship.png");
 	mTBackground.loadFromFile("Media/Texture/sky.jpg");
@@ -31,6 +32,7 @@ Game::Game()
 	mTGameOverMessage.loadFromFile("Media/Texture/gameOver.png");
 	mTVictoryMessage.loadFromFile("Media/Texture/victory.png");
 	lifeFont.loadFromFile("Media/Font/godeater.ttf");
+	mTMeteor.loadFromFile("Media/Texture/meteor.png");
 
 	InitSprites();
 }
@@ -184,6 +186,8 @@ void Game::processEvents()
 void Game::update()
 {
 	float bgMove = mBackground.getPosition().x <= -float(mTBackground.getSize().x - 10) ? 0 : BackgroundSpeed;
+
+
 	for (std::shared_ptr<Entity> entity : EntityManager::m_Entities)
 	{
 		sf::Vector2f movement(0.f, 0.f);
@@ -193,14 +197,14 @@ void Game::update()
 		}
 		if (entity->m_type == EntityType::player)
 		{
-if (mIsMovingUp && entity->m_sprite.getPosition().y > 0)
-movement.y -= PlayerSpeed;
-if (mIsMovingDown && entity->m_sprite.getPosition().y < mWindow.getSize().y - (mTexture.getSize().y * entity->m_sprite.getScale().y))
-	movement.y += PlayerSpeed;
-if (mIsMovingRight && entity->m_sprite.getPosition().x < mWindow.getSize().x)
-	movement.x += PlayerSpeed;
-if (mIsMovingLeft && entity->m_sprite.getPosition().x > 0)
-movement.x -= PlayerSpeed;
+			if (mIsMovingUp && entity->m_sprite.getPosition().y > 0)
+			movement.y -= PlayerSpeed;
+			if (mIsMovingDown && entity->m_sprite.getPosition().y < mWindow.getSize().y - (mTexture.getSize().y * entity->m_sprite.getScale().y))
+				movement.y += PlayerSpeed;
+			if (mIsMovingRight && entity->m_sprite.getPosition().x < mWindow.getSize().x)
+				movement.x += PlayerSpeed;
+			if (mIsMovingLeft && entity->m_sprite.getPosition().x > 0)
+			movement.x -= PlayerSpeed;
 		}
 		else if (entity->m_type == EntityType::weapon)
 		{
@@ -221,31 +225,47 @@ movement.x -= PlayerSpeed;
 		}
 		else if (entity->m_type == EntityType::enemyMaster)
 		{
-		if (entity->m_sprite.getPosition().x > 900) {
-			movement.x = -EnemySpeed;
-		}
-
-
-		if (entity->m_sprite.getPosition().x <= 0) {
-			entity->m_enabled = false;
-		}
-		}
-		else if (entity->m_type == EntityType::enemyWeapon) {
-		movement.x = -EnemyMissilesSpeed;
-		std::srand(time(0));
-		if (entity->m_sprite.getPosition().x <= 1200 - std::rand() % 100) {
-			if (entity->m_sprite.getPosition().y < EntityManager::GetPlayer()->m_sprite.getPosition().y + (EntityManager::GetPlayer()->m_sprite.getTexture()->getSize().y * EntityManager::GetPlayer()->m_sprite.getScale().y) / 2) {
-				movement.y = EnemyMissilesSpeed;
-			}
-			else if (entity->m_sprite.getPosition().y > EntityManager::GetPlayer()->m_sprite.getPosition().y + (EntityManager::GetPlayer()->m_sprite.getTexture()->getSize().y * EntityManager::GetPlayer()->m_sprite.getScale().y) / 2) {
-				movement.y = -EnemyMissilesSpeed;
+			if (entity->m_sprite.getPosition().x > 900) {
+				movement.x = -EnemySpeed;
 			}
 			else {
-				movement.y = 0;
+			
+			}
+
+
+			if (entity->m_sprite.getPosition().x <= 0) {
+				entity->m_enabled = false;
+			}
+		} else if (entity->m_type == EntityType::enemyWeapon) {
+			movement.x = -EnemyMissilesSpeed;
+			std::srand(time(0));
+			if (entity->m_sprite.getPosition().x <= 1200 - std::rand() % 100) {
+				if (entity->m_sprite.getPosition().y < EntityManager::GetPlayer()->m_sprite.getPosition().y + (EntityManager::GetPlayer()->m_sprite.getTexture()->getSize().y * EntityManager::GetPlayer()->m_sprite.getScale().y) / 2) {
+					movement.y = EnemyMissilesSpeed;
+				}
+				else if (entity->m_sprite.getPosition().y > EntityManager::GetPlayer()->m_sprite.getPosition().y + (EntityManager::GetPlayer()->m_sprite.getTexture()->getSize().y * EntityManager::GetPlayer()->m_sprite.getScale().y) / 2) {
+					movement.y = -EnemyMissilesSpeed;
+				}
+				else {
+					movement.y = 0;
+				}
 			}
 		}
-		}
+		else if (entity->m_type == EntityType::enemyMasterWeapon) {
+			printf("x : %d\n", entity->m_sprite.getPosition().x);
+			printf("y : %d\n\n", entity->m_sprite.getPosition().y);
 
+			movement.x = - ((entity->time + pow(cos(entity->time), 3) - 3 * pow(sin((entity->time)), 2)) *0.5);
+			movement.y = -(3 * sin(entity->time) * (2 * cos(2 * entity->time) + 1));
+			//movement.y = - ((-(pow(sin(entity->time), 3) + 3 * sin(entity->time) * pow(cos(entity->time), 2) + 1))) /2;
+
+
+			entity->time += 0.01;
+			if (entity->m_enabled != false && entity->m_sprite.getPosition().x <= 0) {
+				entity->m_enabled = false;
+				BossMeteorNumber--;
+			}
+		}
 
 
 		entity->m_sprite.move(movement);
@@ -254,6 +274,24 @@ movement.x -= PlayerSpeed;
 	if (mBackground.getPosition().x > -550.0) {
 		mBackground.move(-bgMove, 0);
 	}
+}
+
+
+void Game::meteorShower() {
+	for (int i = 0; i < 5; i++)
+	{
+		std::shared_ptr<Entity> em = std::make_shared<Entity>();
+		em->m_sprite.setTexture(mTMeteor);
+		em->m_size = mTMeteor.getSize();
+		em->m_sprite.setPosition(mWindow.getSize().x, mWindow.getSize().y * (i+1) / 7);
+		em->m_sprite.setScale(0.1f, 0.1f);
+		em->m_type = EntityType::enemyMasterWeapon;
+		em->damage = 20;
+		em->life = 20;
+		em->time = 0;
+		EntityManager::m_Entities.push_back(em);
+	}
+	BossMeteorNumber = 5;
 }
 
 void Game::render()
@@ -295,15 +333,13 @@ void Game::displayLifeText() {
 	if (mGameOver) {
 		lifeDisplay.setString("0 %");
 		mWindow.draw(lifeDisplay);
-	}
-	else {
+	} else {
 		int life = EntityManager::GetPlayer()->life;
 		std::string life_str = "";
 
 		if (life <= 0) {
 			life_str += "0";
-		}
-		else {
+		} else {
 			life_str += std::to_string(life * 2);
 		}
 
@@ -401,6 +437,7 @@ void Game::handleCollisions()
 							if (enemy->m_type == EntityType::enemyMaster) {
 								mVictory = true;
 							}
+							
 						}
 						entity->m_enabled = false;
 						break;
@@ -418,7 +455,21 @@ void Game::handleCollisions()
 						{
 							enemy->m_enabled = false;
 						}
-						entity->m_enabled = false;
+						break;
+					}
+				}
+				else if (enemy->m_type == EntityType::enemyMasterWeapon)
+				{
+					sf::FloatRect boundMasterWeapon;
+					boundMasterWeapon = enemy->m_sprite.getGlobalBounds();
+					if (boundMasterWeapon.intersects(boundWeapon) == true)
+					{
+						enemy->life -= player->damage;
+						if (enemy->life <= 0)
+						{
+							enemy->m_enabled = false;+
+							BossMeteorNumber--;
+						}
 						break;
 					}
 				}
@@ -427,6 +478,7 @@ void Game::handleCollisions()
 
 		if (entity->m_type == EntityType::enemyWeapon || // Enemy hit player
 			entity->m_type == EntityType::enemy ||
+			entity->m_type == EntityType::enemyMasterWeapon ||
 			entity->m_type == EntityType::enemyMaster)
 		{
 			if (entity->m_type == EntityType::enemy)
@@ -443,6 +495,9 @@ void Game::handleCollisions()
 				player->life = player->life - entity->damage;
 				if (entity->m_type != EntityType::enemyMaster) // Can't OS the boss
 					entity->m_enabled = false;
+				if (entity->m_type == EntityType::enemyMasterWeapon) {
+					BossMeteorNumber--;
+				}
 				break;
 			}
 			if (player->life <= 0) {
@@ -450,5 +505,9 @@ void Game::handleCollisions()
 				player->m_enabled = false;
 			}
 		}
+	}
+
+	if (BossMeteorNumber == 0) {
+		meteorShower();
 	}
 }

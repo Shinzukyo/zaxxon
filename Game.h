@@ -23,6 +23,7 @@ private:
 
 	void handlePlayerInput(sf::Keyboard::Key key, bool isPressed);
 	void handleCollisions();
+	void meteorShower();
 
 
 private:
@@ -31,7 +32,7 @@ private:
 	static const float		BackgroundSpeed;
 	static const float		EnemySpeed;
 	static const float		EnemyMissilesSpeed;
-	static int		EnemyMissilesNumber;
+	static int		BossMeteorNumber;
 
 	bool mGameOver;
 	bool mVictory;
@@ -58,6 +59,9 @@ private:
 
 	sf::Texture			mTEnemyMissile;
 	sf::Sprite			mEnemyMissile;
+
+	sf::Texture mTMeteor;
+	sf::Sprite mMeteor;
 
 	bool mIsMovingUp;
 	bool mIsMovingDown;

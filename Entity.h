@@ -26,6 +26,7 @@ public:
 
 	int life;
 	int damage;
+	float time;
 
 };
 
