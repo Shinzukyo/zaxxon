@@ -34,6 +34,21 @@ Game::Game()
 	lifeFont.loadFromFile("Media/Font/godeater.ttf");
 	mTMeteor.loadFromFile("Media/Texture/meteor.png");
 
+	sBLaser.loadFromFile("Media/Sound/laser.wav");
+	sBExplosion.loadFromFile("Media/Sound/explosion.wav");
+
+	sBackground.openFromFile("Media/Sound/background.wav");
+	sBackground.setLoop(true);
+	sBackground.setVolume(10);
+
+	sGameover.openFromFile("Media/Sound/gameover.wav");
+	sGameover.setLoop(true);
+	sGameover.setVolume(20);
+
+	sVictory.openFromFile("Media/Sound/victory.wav");
+	sVictory.setLoop(true);
+	sVictory.setVolume(20);
+
 	InitSprites();
 }
 
@@ -53,6 +68,12 @@ void Game::InitSprites()
 {
 
 	_IsPlayerWeaponFired = false;
+
+	sBackground.play();
+	sExplosion.setBuffer(sBExplosion);
+	sExplosion.setVolume(10);
+	sLaser.setBuffer(sBLaser);
+	sLaser.setVolume(10);
 
 	mGameOverMessage.setTexture(mTGameOverMessage);
 	mGameOverMessage.setScale(2.0,2.0);
@@ -228,9 +249,6 @@ void Game::update()
 			if (entity->m_sprite.getPosition().x > 900) {
 				movement.x = -EnemySpeed;
 			}
-			else {
-			
-			}
 
 
 			if (entity->m_sprite.getPosition().x <= 0) {
@@ -252,9 +270,6 @@ void Game::update()
 			}
 		}
 		else if (entity->m_type == EntityType::enemyMasterWeapon) {
-			printf("x : %d\n", entity->m_sprite.getPosition().x);
-			printf("y : %d\n\n", entity->m_sprite.getPosition().y);
-
 			movement.x = - ((entity->time + pow(cos(entity->time), 3) - 3 * pow(sin((entity->time)), 2)) *0.5);
 			movement.y = -(3 * sin(entity->time) * (2 * cos(2 * entity->time) + 1));
 			//movement.y = - ((-(pow(sin(entity->time), 3) + 3 * sin(entity->time) * pow(cos(entity->time), 2) + 1))) /2;
@@ -310,10 +325,19 @@ void Game::render()
 
 	if (mGameOver) {
 		displayGameOver();
+
+		if (sGameover.getStatus() != sf::SoundSource::Playing) {
+			sGameover.play();
+			sBackground.stop();
+		}
 	}
 
 	if (mVictory) {
 		displayVictory();
+		if (sVictory.getStatus() != sf::SoundSource::Playing) {
+			sVictory.play();
+			sBackground.stop();
+		}
 	}
 
 	displayLifeText();
@@ -323,10 +347,12 @@ void Game::render()
 
 void Game::displayGameOver() {
 	mWindow.draw(mGameOverMessage);
+	sBackground.stop();
 }
 
 void Game::displayVictory() {
 	mWindow.draw(mVictoryMessage);
+	sBackground.stop();
 }
 
 void Game::displayLifeText() {
@@ -388,6 +414,7 @@ void Game::handlePlayerInput(sf::Keyboard::Key key, bool isPressed)
 		sw->life = 1;
 		EntityManager::m_Entities.push_back(sw);
 		_IsPlayerWeaponFired = true;
+		sLaser.play();
 	}
 
 	if (key == sf::Keyboard::Escape) {
@@ -436,8 +463,10 @@ void Game::handleCollisions()
 							enemy->m_enabled = false;
 							if (enemy->m_type == EntityType::enemyMaster) {
 								mVictory = true;
+								sVictory.play();
+								sBackground.stop();
 							}
-							
+							sExplosion.play();
 						}
 						entity->m_enabled = false;
 						break;
@@ -454,6 +483,7 @@ void Game::handleCollisions()
 						if (enemy->life <= 0)
 						{
 							enemy->m_enabled = false;
+							sExplosion.play();
 						}
 						break;
 					}
@@ -469,6 +499,7 @@ void Game::handleCollisions()
 						{
 							enemy->m_enabled = false;+
 							BossMeteorNumber--;
+							sExplosion.play();
 						}
 						break;
 					}
@@ -507,7 +538,9 @@ void Game::handleCollisions()
 		}
 	}
 
-	if (BossMeteorNumber == 0) {
-		meteorShower();
+	if (!mVictory && EntityManager::GetEnemyMaster()->m_sprite.getPosition().x <= 900) {
+		if (BossMeteorNumber == 0) {
+			meteorShower();
+		}
 	}
 }

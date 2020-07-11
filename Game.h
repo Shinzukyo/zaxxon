@@ -63,6 +63,17 @@ private:
 	sf::Texture mTMeteor;
 	sf::Sprite mMeteor;
 
+	sf::Music sBackground;
+	sf::Music sGameover;
+	sf::Music sVictory;
+
+	sf::SoundBuffer sBExplosion;
+	sf::SoundBuffer sBLaser;
+
+	sf::Sound sExplosion;
+	sf::Sound sLaser;
+
+
 	bool mIsMovingUp;
 	bool mIsMovingDown;
 	bool mIsMovingRight;

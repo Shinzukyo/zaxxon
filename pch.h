@@ -18,6 +18,8 @@
 
 #include <SFML/Graphics.hpp>
 #include <SFML/OpenGL.hpp>
+#include <SFML/Audio.hpp>
+
 
 #pragma comment(lib, "sfml-audio-d.lib")
 #pragma comment(lib, "sfml-graphics-d.lib")
