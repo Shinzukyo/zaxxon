@@ -88,9 +88,7 @@ void Game::InitSprites()
 	// Player
 	mPlayer.setTexture(mTexture);
 	mPlayer.setPosition(10.f, 250.f);
-
-	mPlayer.scale(1.0,1.0);
-
+	mPlayer.scale(0.5,0.5);
 	std::shared_ptr<Entity> player = std::make_shared<Entity>();
 	player->m_sprite = mPlayer;
 	player->m_type = EntityType::player;
@@ -98,10 +96,11 @@ void Game::InitSprites()
 	player->m_position = mPlayer.getPosition();
 	player->damage = 10;
 	player->life = 50;
-	mBackground.setTexture(mTBackground);
-	mBackground.scale(0.5, 0.5);
 	EntityManager::m_Entities.push_back(player);
 
+
+	mBackground.setTexture(mTBackground);
+	mBackground.scale(0.5, 0.5);
 
 	// Enemies
 	float screenSize = mWindow.getSize().x;
@@ -293,16 +292,17 @@ void Game::update()
 
 
 void Game::meteorShower() {
+	std::srand(time(0));
 	for (int i = 0; i < 5; i++)
 	{
 		std::shared_ptr<Entity> em = std::make_shared<Entity>();
 		em->m_sprite.setTexture(mTMeteor);
 		em->m_size = mTMeteor.getSize();
-		em->m_sprite.setPosition(mWindow.getSize().x, mWindow.getSize().y * (i+1) / 7);
+		em->m_sprite.setPosition(900, (mWindow.getSize().y * (i + 1) / 7) + std::rand() % 100) ;
 		em->m_sprite.setScale(0.1f, 0.1f);
 		em->m_type = EntityType::enemyMasterWeapon;
 		em->damage = 20;
-		em->life = 20;
+		em->life = 40;
 		em->time = 0;
 		EntityManager::m_Entities.push_back(em);
 	}
@@ -458,8 +458,6 @@ void Game::handleCollisions()
 						enemy->life = enemy->life - player->damage;
 						if (enemy->life <= 0)
 						{
-							if (player->life < 50)
-								player->life += 10;
 							enemy->m_enabled = false;
 							if (enemy->m_type == EntityType::enemyMaster) {
 								mVictory = true;
@@ -482,6 +480,7 @@ void Game::handleCollisions()
 						enemy->life -= player->damage;
 						if (enemy->life <= 0)
 						{
+							entity->m_enabled = false;
 							enemy->m_enabled = false;
 							sExplosion.play();
 						}
