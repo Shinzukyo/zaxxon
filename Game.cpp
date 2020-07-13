@@ -132,6 +132,7 @@ void Game::InitSprites()
 			std::shared_ptr<Entity> ew = std::make_shared<Entity>();
 			mTEnemyMissile.loadFromFile("Media/Texture/elaser.png");
 			ew->m_sprite.setTexture(mTEnemyMissile);
+			ew->m_sprite.setScale(0.2f, 0.2f);
 			ew->m_size = mTEnemyMissile.getSize();
 			ew->m_sprite.setPosition(mWindow.getSize().x + (screenSize * i) + std::rand() % 300, std::rand() % 2 == 0 ? -30 : 750);
 			ew->m_type = EntityType::enemyWeapon;
@@ -145,7 +146,7 @@ void Game::InitSprites()
 	std::shared_ptr<Entity> bw = std::make_shared<Entity>();
 	bw->m_sprite.setTexture(mTBoss);
 	bw->m_size = mTBoss.getSize();
-	bw->m_sprite.setScale(3.0, 3.0);
+	bw->m_sprite.setScale(1.0, 1.0);
 	bw->m_sprite.setPosition(mWindow.getSize().x + (screenSize * 2) , mWindow.getSize().y / 2 - (bw->m_sprite.getTexture()->getSize().y * bw->m_sprite.getScale().y /2 ) ) ;
 	bw->m_type = EntityType::enemyMaster;
 	bw->damage = 20;
@@ -403,7 +404,7 @@ void Game::handlePlayerInput(sf::Keyboard::Key key, bool isPressed)
 		std::shared_ptr<Entity> sw = std::make_shared<Entity>();
 		mTMissile.loadFromFile("Media/Texture/laser.png");
 		sw->m_sprite.setTexture(mTMissile);
-		sw->m_sprite.setScale(0.5, 0.5);
+		sw->m_sprite.setScale(0.2f, 0.2f);
 		
 		sw->m_size = mTMissile.getSize();
 		sw->m_sprite.setPosition(
